@@ -6,10 +6,11 @@
   #hosts: localhost
   #
   # in our case, we have MULTIPLE api endpoints
-  hosts: powerprotect_ddsa # resolved in an inventory (we want to leverage concurrnt behavior... i.e forking)
+  #hosts: powerprotect_ddsa # resolved in an inventory (we want to leverage concurrnt behavior... i.e forking)
+  hosts: powerprotect_ddsa
   
   # anytime your playbook is doing HTTP (exclusively)
-  connetion: local # set connection to local (no SSH protocol)
+  connection: local # set connection to local (no SSH protocol)
 
   # if this does run, we end up gather facts about OURSELF
   gather_facts: false
@@ -21,12 +22,11 @@
           - name: POST - Create authentication token.
             uri:
                 # API DOC EXAMPLE - https://localhost:3009/rest/v1.0/auth
+                validate_certs: no
                 url: "https://{{ ddsa_ip }}:{{ ddsa_port }}/rest/v1.0/auth"
                 method: POST
-                body_format: form-urlencoded
-                body:
-                        username: "{{ username }}" # variables our user will define
-                        password: "{{ password }}" # variables our user will define
+                body_format: json
+                body: "{ \"auth_info\": {\"username\":\"{{ username }}\", \"password\":\"{{ password }}\" }}"
                 status_code: 201 # per the documenation, an HTTP 201 is returned to our lookup
             register: results
 
@@ -38,10 +38,10 @@
             debug:
                     var: results.X-DD-AUTH-TOKEN
 
-         - name: Create a new variable on the fly to make the token more accessible
-           set_fact:
-                   token: "{{ results.X-DD-AUTH-TOKEN }}"
+          - name: Create a new variable on the fly to make the token more accessible
+            set_fact:
+                    token: "{{ results.x_dd_auth_token }}"
 
-         - name: Show JUST the token
-           debug:
-                   var: token
+          - name: Show JUST the token
+            debug:
+                    var: token
