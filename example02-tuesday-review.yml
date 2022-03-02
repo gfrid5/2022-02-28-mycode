@@ -1,0 +1,20 @@
+---
+- name: Tuesday Morning Review  # name for our "play"
+  hosts: futurama # target servers / devices for our playbook
+  gather_facts: no # this runs "setup.py" (which learns about targets)
+  connection: ssh
+
+  tasks:
+          - name: Create a directory if it does not exist
+            ansible.builtin.file:
+                path: ~/config/
+                state: directory
+                mode: '0755'
+
+          - name: Copy using inline content
+            ansible.builtin.copy:
+                # static coding (easy, but doesn't scale well)
+                content: '# First line of our config file\n# Second line of the config file'
+                # lookup plugin
+                #content: "{{ lookup('file', '/path/to/file') }}"
+                dest: ~/config/example.cfg  # location on our remote hosts

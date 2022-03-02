@@ -1,0 +1,27 @@
+---
+- name: URI Example
+
+  # if you only have a SINGLE api endpoint,
+  # it is prob easiest not even to mess with an inventory
+  hosts: localhost
+  #
+  # anytime your playbook is doing HTTP (exclusively)
+  connection: local # set connection to local (no SSH protocol)
+
+  # if this does run, we end up gather facts about OURSELF
+  gather_facts: false
+
+  # tasks are being created from documentation available @ https://developer.dell.com/apis/4118/versions/7.8/reference
+  tasks:
+
+          # Grab an AUTH token our solution can use to interact with PowerProtect DataDomain
+          - name: TEST GET
+            uri:
+                # API DOC EXAMPLE - https://localhost:3009/rest/v1.0/auth
+                url: "http://example.com"
+                method: GET
+            register: results
+
+          - name: show results
+            debug:
+                var: results
