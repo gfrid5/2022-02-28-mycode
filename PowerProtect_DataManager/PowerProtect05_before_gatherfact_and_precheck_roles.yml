@@ -1,0 +1,70 @@
+---
+- name: PowerProtect Data Domain Series Appliances - Example
+  
+  # if you only have a SINGLE api endpoint,
+  # it is prob easiest not even to mess with an inventory
+  #hosts: localhost
+  #
+  # in our case, we have MULTIPLE api endpoints
+  hosts: powerprotect_ddsa # resolved in an inventory (we want to leverage concurrnt behavior... i.e forking)
+  
+  # anytime your playbook is doing HTTP (exclusively)
+  connetion: local # set connection to local (no SSH protocol)
+
+  # if this does run, we end up gather facts about OURSELF
+  gather_facts: false
+
+  # this section runs just BEFORE tasks
+  # this should return a variable named "token" that we can reference
+  roles:
+          - powerprotect_series_app_token_gen
+
+  # tasks are being created from documentation available @ https://developer.dell.com/apis/4118/versions/7.8/reference
+  tasks:
+          # GET - File System Information
+          - name: GET - File System Information
+            uri:
+                # API DOC EXAMPLE - https://localhost:3009/rest/v1.0/system
+                url: "https://{{ ddsa_ip }}:{{ ddsa_port }}/rest/v1.0/system"
+                method: GET # copied from API documentation
+                status_code: 200  # default (it worked)
+                body:
+                        Content-Type: application/json
+                        Accept: application/json
+                        X-DD-AUTH-TOKEN: "{{ token }}" # this was returned by the role powerprotect_series_app_token_gen
+            register: powerprotect_series_app_info # this variable could be named anything
+
+          # display the results
+          - name: Show the results of our system information
+            debug:
+                    var: powerprotect_series_app_info
+
+
+          # design a kind of precheck (assumes gathered facts is run)
+          - name: Assert that our physical capacity is above our desired threshold
+            assert:
+                    that: powerprotect_series_app_info.physical_capacity.available > 10000 # this would be set to a value you thought within a tollerance
+                    fail_msg: "Physical Capacity Check - FAILED - Uh oh! We are running out room!"
+                    success_msg: "Physical Capacity Check - PASSED"
+
+
+          - name: debug the var
+            debug:
+                    var: powerprotect_series_app_info.version.lstrip("Data Domain OS ").replace("-", "").replace(".", "")[0:4]
+                    verbosity: 1
+
+          - name: transfrom the version into a shorter var
+            set_fact:
+                    ddsa_version: '{{ powerprotect_series_app_info.version.lstrip("Data Domain OS ").replace("-", "").replace(".", "")[0:4] }}'
+
+          - name: Assert that our version appears correct (checks that the string literal appears in the string)
+            assert:
+                    that: '"7.2.0" in powerprotect_series_app_info.version'
+                    fail_msg: "Version Check - FAILED - A server is running a version below 7.2.0! Upgrade firmware recommended."
+                    success_msg: "Version Check - PASSED"
+
+          - name: Assert that the version appears correct (convert string to a int then check against our int 7000)
+            assert:
+                    that: ddsa_version|int >= 7000
+                    success_msg: "Version Check above version 7.0.0.0 - PASSED"
+                    fail_msg: "Version Check above version 7.0.0.0 - FAILED"

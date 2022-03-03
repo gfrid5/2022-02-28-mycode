@@ -1,0 +1,29 @@
+---
+- name: PowerProtect Data Domain Series Appliances - Example
+  
+  # if you only have a SINGLE api endpoint,
+  # it is prob easiest not even to mess with an inventory
+  #hosts: localhost
+  #
+  # in our case, we have MULTIPLE api endpoints
+  #hosts: powerprotect_ddsa # resolved in an inventory (we want to leverage concurrnt behavior... i.e forking)
+  hosts: powerprotect_ddsa
+  
+  # anytime your playbook is doing HTTP (exclusively)
+  connection: local # set connection to local (no SSH protocol)
+
+  # if this does run, we end up gather facts about OURSELF
+  gather_facts: false
+
+  # tasks are being created from documentation available @ https://developer.dell.com/apis/4118/versions/7.8/reference
+  tasks:
+          # this treats the role more like a task, however, it is run the same way
+          # invoking in this manner also allows us to pass local vars as the role is treated as a task
+          - name: Use our role to grab a token
+            include_role:                                       # import_ and include_
+                    name: powerprotect_series_app_token_gen
+
+
+          - name: Show JUST the token (this will be the second time it is shown, this time we are returning it from the playbook)
+            debug:
+                    var: token

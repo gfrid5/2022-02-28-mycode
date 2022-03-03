@@ -1,0 +1,15 @@
+---
+# This is how we activate the openstack plugin
+# 0) run python3 -m pip install openstacksdk
+# 1) edit ansible.cfg (see example in this folder)
+# 2) You need this file to be named openstack.yml or openstack.yaml
+# 3) You need to create clouds.yml with your creds (or source keystone_rc.yml)
+# 4) run the solution with -i pointing to openstack.yml or openstack.yaml
+# All settings for this file @ https://docs.ansible.com/ansible/2.5/plugins/inventory/openstack.html
+plugin: openstack.cloud.openstack
+expand_hostvars: yes
+fail_on_errors: yes
+all_projects: yes
+# if you ONLY wanted a certain cred to be used...
+#only_clouds:
+#        - alta3
