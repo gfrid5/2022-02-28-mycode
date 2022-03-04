@@ -1,0 +1,18 @@
+---
+- name: Playbook - Install figlet     # providing meta-data
+  hosts: planetexpress:!farnsworth    # resolved in our "inventory" (no farnsworth)
+  gather_facts: yes       # default is yes
+  connection: ssh         # use the connection plugin type, "ssh" (default)
+
+  vars:
+          the_state: present            # provide a default setting for the_state
+
+
+  tasks:
+
+  # first task
+  - name: modify figlet                # providing meta-data for task
+    apt:                               # ansible module (apt.py)
+        name: figlet                   # name parameter - provides name of the app
+        state: "{{ the_state }}"           # state param - present / absent / latest / etc.
+    become: yes                        # run as "sudo"

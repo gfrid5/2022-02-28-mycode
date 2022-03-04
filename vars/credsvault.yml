@@ -1,0 +1,8 @@
+---
+dell:
+        unispherehost: 10.126.70.28
+        universion: 92 # this is now an INT of 91 or 92
+        verifycert: no
+        user: smc
+        password: smc
+
